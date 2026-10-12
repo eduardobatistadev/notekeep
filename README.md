@@ -30,6 +30,7 @@ Para instalar, copie `build/NotepadMac.app` para `/Applications`.
 | Ordenar linhas, remover espaços   | Menu Editar                                                   |
 | Ir para linha                     | ⌘L                                                            |
 | Números de linha, quebra de linha | Menu Exibir; zoom com ⌘+ / ⌘- / ⌘0                            |
+| Tema claro/escuro                 | Ícone no canto da barra de status; Exibir ▸ Aparência         |
 | Barra de status                   | Tamanho, linhas, Ln/Col, seleção, linguagem, EOL, codificação |
 | Snapshot de sessão e backup       | ⌘Q fecha sem perguntar; as abas voltam com o texto não salvo  |
 

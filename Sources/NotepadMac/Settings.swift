@@ -2,6 +2,20 @@ import AppKit
 
 /// App-wide editor preferences, shared by every window like Notepad++'s
 /// global view settings.
+enum AppearanceMode: String, CaseIterable {
+    case system
+    case light
+    case dark
+
+    var displayName: String {
+        switch self {
+        case .system: return "Seguir o sistema"
+        case .light: return "Claro"
+        case .dark: return "Escuro"
+        }
+    }
+}
+
 @MainActor
 final class Settings {
     static let shared = Settings()
@@ -16,6 +30,7 @@ final class Settings {
             "showLineNumbers": true,
             "tabWidth": 4,
             "rememberSession": true,
+            "appearance": AppearanceMode.system.rawValue,
         ])
     }
 
@@ -38,6 +53,28 @@ final class Settings {
     var rememberSession: Bool {
         get { defaults.bool(forKey: "rememberSession") }
         set { defaults.set(newValue, forKey: "rememberSession"); notify() }
+    }
+
+    var appearance: AppearanceMode {
+        get { AppearanceMode(rawValue: defaults.string(forKey: "appearance") ?? "") ?? .system }
+        set {
+            defaults.set(newValue.rawValue, forKey: "appearance")
+            applyAppearance()
+            notify()
+        }
+    }
+
+    /// Light/dark for the whole app; nil follows the system setting.
+    func applyAppearance() {
+        switch appearance {
+        case .system: NSApp.appearance = nil
+        case .light: NSApp.appearance = NSAppearance(named: .aqua)
+        case .dark: NSApp.appearance = NSAppearance(named: .darkAqua)
+        }
+    }
+
+    var isDarkAppearance: Bool {
+        NSApp.effectiveAppearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
     }
 
     var tabWidth: Int { max(1, defaults.integer(forKey: "tabWidth")) }

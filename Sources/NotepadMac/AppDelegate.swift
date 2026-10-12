@@ -6,6 +6,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
 
     func applicationWillFinishLaunching(_ notification: Notification) {
         NSWindow.allowsAutomaticWindowTabbing = true
+        Settings.shared.applyAppearance()
         // Restore before AppKit decides whether to open an untitled document
         // and before files opened from Finder join as extra tabs.
         restoredTabCount = SessionManager.shared.restore()
@@ -42,9 +43,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         }
     }
 
+    @objc func setAppearanceMode(_ sender: NSMenuItem) {
+        guard AppearanceMode.allCases.indices.contains(sender.tag) else { return }
+        Settings.shared.appearance = AppearanceMode.allCases[sender.tag]
+    }
+
     func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
         if menuItem.action == #selector(toggleRememberSession(_:)) {
             menuItem.state = Settings.shared.rememberSession ? .on : .off
+        }
+        if menuItem.action == #selector(setAppearanceMode(_:)) {
+            menuItem.state = AppearanceMode.allCases.firstIndex(of: Settings.shared.appearance) == menuItem.tag ? .on : .off
         }
         return true
     }

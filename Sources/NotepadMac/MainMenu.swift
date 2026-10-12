@@ -75,6 +75,9 @@ enum MainMenu {
         main.addItem(submenu("Exibir", [
             item("Quebra automática de linha", #selector(EditorWindowController.toggleWordWrap(_:)), "w", [.command, .option]),
             item("Números de linha", #selector(EditorWindowController.toggleLineNumbers(_:))),
+            submenu("Aparência", AppearanceMode.allCases.enumerated().map { index, mode in
+                item(mode.displayName, #selector(AppDelegate.setAppearanceMode(_:)), tag: index)
+            }),
             .separator(),
             item("Aumentar fonte", #selector(EditorWindowController.makeTextLarger(_:)), "+"),
             item("Diminuir fonte", #selector(EditorWindowController.makeTextSmaller(_:)), "-"),

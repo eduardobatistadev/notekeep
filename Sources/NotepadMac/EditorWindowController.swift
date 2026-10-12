@@ -11,6 +11,7 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate, NSText
     private let scrollView = NSScrollView()
     private let ruler: LineNumberRulerView
     private let statusLabels = (0..<5).map { _ in NSTextField(labelWithString: "") }
+    private let appearanceButton = NSButton()
     private var lineIndex = LineIndex(text: "")
     private var highlightWorkItem: DispatchWorkItem?
     private var observers: [NSObjectProtocol] = []
@@ -118,6 +119,18 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate, NSText
             }
         }
 
+        // Discreet light/dark switch at the end of the status bar.
+        appearanceButton.isBordered = false
+        appearanceButton.imageScaling = .scaleProportionallyDown
+        appearanceButton.contentTintColor = .tertiaryLabelColor
+        appearanceButton.target = self
+        appearanceButton.action = #selector(toggleAppearance(_:))
+        appearanceButton.translatesAutoresizingMaskIntoConstraints = false
+        appearanceButton.widthAnchor.constraint(equalToConstant: 16).isActive = true
+        appearanceButton.heightAnchor.constraint(equalToConstant: 16).isActive = true
+        statusBar.addView(appearanceButton, in: .trailing)
+        updateAppearanceButton()
+
         let divider = NSBox()
         divider.boxType = .separator
         divider.translatesAutoresizingMaskIntoConstraints = false
@@ -151,6 +164,7 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate, NSText
 
     private func applySettings() {
         let settings = Settings.shared
+        updateAppearanceButton()
         textView.applyBaseAttributes(settings.baseAttributes)
         ruler.font = NSFont.monospacedDigitSystemFont(ofSize: max(9, settings.fontSize - 2), weight: .regular)
         scrollView.rulersVisible = settings.showLineNumbers
@@ -325,6 +339,25 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate, NSText
     @objc func setLanguage(_ sender: NSMenuItem) {
         guard Language.allCases.indices.contains(sender.tag) else { return }
         textDocument?.language = Language.allCases[sender.tag]
+    }
+
+    /// Flips between light and dark, starting from whatever is showing now.
+    @objc func toggleAppearance(_ sender: Any?) {
+        Settings.shared.appearance = Settings.shared.isDarkAppearance ? .light : .dark
+    }
+
+    private func updateAppearanceButton() {
+        let mode = Settings.shared.appearance
+        let symbol: String
+        switch mode {
+        case .system: symbol = "circle.lefthalf.filled"
+        case .light: symbol = "sun.max"
+        case .dark: symbol = "moon"
+        }
+        let configuration = NSImage.SymbolConfiguration(pointSize: 11, weight: .regular)
+        appearanceButton.image = NSImage(systemSymbolName: symbol, accessibilityDescription: "Tema")?
+            .withSymbolConfiguration(configuration)
+        appearanceButton.toolTip = "Tema: \(mode.displayName) — clique para alternar entre claro e escuro"
     }
 
     @objc func toggleWordWrap(_ sender: Any?) {
