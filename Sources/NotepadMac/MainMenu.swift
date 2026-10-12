@@ -27,6 +27,7 @@ enum MainMenu {
 
         main.addItem(submenu("Arquivo", [
             item("Novo", #selector(NSDocumentController.newDocument(_:)), "n"),
+            item("Nova aba", #selector(AppDelegate.newWindowForTab(_:)), "t"),
             item("Abrir…", #selector(NSDocumentController.openDocument(_:)), "o"),
             recentItem,
             .separator(),
