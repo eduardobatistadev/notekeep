@@ -19,7 +19,7 @@ enum AppearanceMode: String, CaseIterable {
 @MainActor
 final class Settings {
     static let shared = Settings()
-    static let didChange = Notification.Name("NotepadMacSettingsDidChange")
+    static let didChange = Notification.Name("NotekeepSettingsDidChange")
 
     private let defaults = UserDefaults.standard
 

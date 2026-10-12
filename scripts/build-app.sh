@@ -1,15 +1,15 @@
 #!/bin/sh
-# Builds a release NotepadMac.app in ./build, ad-hoc signed for local use.
+# Builds a release Notekeep.app in ./build, ad-hoc signed for local use.
 set -eu
 cd "$(dirname "$0")/.."
 
 swift build -c release --arch arm64 --arch x86_64
-BIN="$(swift build -c release --arch arm64 --arch x86_64 --show-bin-path)/NotepadMac"
-APP="build/NotepadMac.app"
+BIN="$(swift build -c release --arch arm64 --arch x86_64 --show-bin-path)/Notekeep"
+APP="build/Notekeep.app"
 
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
-cp "$BIN" "$APP/Contents/MacOS/NotepadMac"
+cp "$BIN" "$APP/Contents/MacOS/Notekeep"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
 # App icon: render the 1024 px master, then every size iconutil expects.
 ICONSET="build/AppIcon.iconset"

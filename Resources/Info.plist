@@ -3,13 +3,13 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleName</key>
-	<string>NotepadMac</string>
+	<string>Notekeep</string>
 	<key>CFBundleDisplayName</key>
-	<string>NotepadMac</string>
+	<string>Notekeep</string>
 	<key>CFBundleIdentifier</key>
-	<string>local.notepadmac</string>
+	<string>com.eduardobatista.notekeep</string>
 	<key>CFBundleExecutable</key>
-	<string>NotepadMac</string>
+	<string>Notekeep</string>
 	<key>CFBundleIconFile</key>
 	<string>AppIcon</string>
 	<key>CFBundlePackageType</key>

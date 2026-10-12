@@ -5,6 +5,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
     private var restoredTabCount = 0
 
     func applicationWillFinishLaunching(_ notification: Notification) {
+        LegacyMigration.run()
         NSWindow.allowsAutomaticWindowTabbing = true
         Settings.shared.applyAppearance()
         // Restore before AppKit decides whether to open an untitled document

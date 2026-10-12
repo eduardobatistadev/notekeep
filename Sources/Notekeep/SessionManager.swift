@@ -21,7 +21,7 @@ final class SessionManager {
 
     private init() {
         let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        store = SessionStore(directory: support.appendingPathComponent("NotepadMac/Session", isDirectory: true))
+        store = SessionStore(directory: support.appendingPathComponent("Notekeep/Session", isDirectory: true))
     }
 
     var isEnabled: Bool { Settings.shared.rememberSession }
@@ -52,7 +52,7 @@ final class SessionManager {
         do {
             try store.write(snapshot, changedBackups: changedBackups)
         } catch {
-            NSLog("NotepadMac: could not write session: \(error)")
+            NSLog("Notekeep: could not write session: \(error)")
             return false
         }
         backedUpVersions = versions
@@ -204,7 +204,7 @@ final class SessionManager {
                 return nil // Saved file that no longer exists and had no unsaved text.
             }
         } catch {
-            NSLog("NotepadMac: could not restore \(tab.path ?? "untitled tab"): \(error)")
+            NSLog("Notekeep: could not restore \(tab.path ?? "untitled tab"): \(error)")
             return nil
         }
 

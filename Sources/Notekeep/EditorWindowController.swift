@@ -31,7 +31,7 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate, NSText
         // Our own session snapshot reopens tabs; AppKit's window restoration
         // would reopen them a second time.
         window.isRestorable = false
-        window.tabbingIdentifier = "NotepadMacEditor"
+        window.tabbingIdentifier = "NotekeepEditor"
         window.minSize = NSSize(width: 360, height: 240)
 
         // TextKit 1 stack attached to the document's own storage.

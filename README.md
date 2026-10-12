@@ -1,4 +1,4 @@
-# NotepadMac
+# Notekeep
 
 Editor de texto nativo para macOS inspirado no Notepad++, escrito do zero em
 Swift/AppKit. Não contém código do Notepad++.
@@ -8,16 +8,16 @@ Swift/AppKit. Não contém código do Notepad++.
 Requer Xcode (ou Command Line Tools) com Swift 5.10+ e macOS 13+.
 
 ```sh
-./scripts/build-app.sh          # gera build/NotepadMac.app (universal, assinatura ad-hoc)
-open build/NotepadMac.app
+./scripts/build-app.sh          # gera build/Notekeep.app (universal, assinatura ad-hoc)
+open build/Notekeep.app
 swift test                      # testes do núcleo (EditorCore)
 ```
 
-Para instalar, copie `build/NotepadMac.app` para `/Applications`.
+Para instalar, copie `build/Notekeep.app` para `/Applications`.
 
 ## Funcionalidades
 
-| Notepad++                         | NotepadMac                                                    |
+| Notepad++                         | Notekeep                                                    |
 | --------------------------------- | ------------------------------------------------------------- |
 | Abas                              | Abas nativas do macOS (⌘T / ⇧⌘{ ⇧⌘})                          |
 | Realce de sintaxe                 | 22 linguagens, detectadas pela extensão ou shebang            |
@@ -49,14 +49,14 @@ o X do Notepad++. Fechar uma aba isolada (⌘W) com alterações continua
 perguntando, assim como o botão vermelho quando há outras janelas abertas. Com a opção
 desligada, o app volta a perguntar ao encerrar e a sessão gravada é apagada.
 
-Os dados ficam em `~/Library/Application Support/NotepadMac/Session/`
+Os dados ficam em `~/Library/Application Support/Notekeep/Session/`
 (`session.json` e `backups/`).
 
 ## Arquitetura
 
 - `Sources/EditorCore` — lógica pura e testada: codificações, fins de linha,
   índice de linhas, busca, tokenização de sintaxe e operações de linha.
-- `Sources/NotepadMac` — app AppKit baseado em `NSDocument`: cada documento
+- `Sources/Notekeep` — app AppKit baseado em `NSDocument`: cada documento
   mantém o texto normalizado em LF e restaura codificação e fim de linha ao
   salvar. As cores de sintaxe são atributos temporários do layout, por isso
   não entram no desfazer nem marcam o documento como alterado.
