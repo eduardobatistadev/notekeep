@@ -31,6 +31,23 @@ Para instalar, copie `build/NotepadMac.app` para `/Applications`.
 | Ir para linha                     | ⌘L                                                            |
 | Números de linha, quebra de linha | Menu Exibir; zoom com ⌘+ / ⌘- / ⌘0                            |
 | Barra de status                   | Tamanho, linhas, Ln/Col, seleção, linguagem, EOL, codificação |
+| Snapshot de sessão e backup       | ⌘Q fecha sem perguntar; as abas voltam com o texto não salvo  |
+
+## Sessão (como no Notepad++)
+
+Com **Arquivo ▸ Lembrar abas ao encerrar** ligado (padrão), encerrar o app (⌘Q)
+não pede para salvar nada: a lista de abas e o texto não salvo de cada uma
+são gravados e, ao abrir de novo, tudo volta como estava — ordem e aba
+selecionada, texto não salvo (ainda marcado como alterado), cursor, rolagem,
+codificação, fim de linha e linguagem. Um backup periódico a cada 7 s cobre
+travamentos e encerramentos forçados. Os arquivos originais só mudam quando
+você salva.
+
+Fechar uma aba isolada (⌘W) com alterações continua perguntando. Com a opção
+desligada, o app volta a perguntar ao encerrar e a sessão gravada é apagada.
+
+Os dados ficam em `~/Library/Application Support/NotepadMac/Session/`
+(`session.json` e `backups/`).
 
 ## Arquitetura
 
@@ -46,5 +63,8 @@ Para instalar, copie `build/NotepadMac.app` para `/Applications`.
 - Arquivos acima de ~4 MB abrem sem realce de sintaxe.
 - Arquivos com fins de linha mistos são unificados no estilo predominante ao salvar.
 - O realce reprocessa o documento inteiro após cada pausa na digitação.
+- A sessão guarda caminhos de arquivo: um arquivo renomeado ou movido fora do
+  app não é reencontrado (um arquivo apagado com texto não salvo volta como
+  aba alterada, e salvar o recria no mesmo caminho).
 - Ainda não implementados: localizar em arquivos, macros, dobra de código,
-  edição em múltiplos cursores, plugins e restauração de sessão com textos não salvos.
+  edição em múltiplos cursores e plugins.

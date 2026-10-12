@@ -5,8 +5,13 @@ import EditorCore
 /// LF-normalized in memory and the original encoding and line ending are
 /// restored on save.
 @objc(TextDocument)
-final class TextDocument: NSDocument {
+final class TextDocument: NSDocument, NSTextStorageDelegate {
     let textStorage = NSTextStorage()
+    /// Stable identity across quit and relaunch (names the session backup).
+    var sessionID = UUID()
+    /// Increments on every text change, so the session only rewrites
+    /// backups whose text actually changed.
+    private(set) var editVersion = 0
     private(set) var encoding: FileEncoding = .utf8
     private(set) var lineEnding: LineEnding = .lf
     var language: Language = .plainText {
@@ -22,6 +27,7 @@ final class TextDocument: NSDocument {
     override init() {
         super.init()
         hasUndoManager = true
+        textStorage.delegate = self
         textStorage.setAttributedString(NSAttributedString(string: "", attributes: Settings.shared.baseAttributes))
     }
 
@@ -32,6 +38,18 @@ final class TextDocument: NSDocument {
 
     override func makeWindowControllers() {
         addWindowController(EditorWindowController(document: self))
+        SessionManager.shared.markChanged()
+    }
+
+    override func close() {
+        super.close()
+        SessionManager.shared.markChanged()
+    }
+
+    func textStorage(_ textStorage: NSTextStorage, didProcessEditing editedMask: NSTextStorageEditActions, range editedRange: NSRange, changeInLength delta: Int) {
+        guard editedMask.contains(.editedCharacters) else { return }
+        editVersion += 1
+        SessionManager.shared.markChanged()
     }
 
     // MARK: Reading and writing
@@ -79,6 +97,7 @@ final class TextDocument: NSDocument {
         undoManager?.registerUndo(withTarget: self) { $0.setEncoding(previous) }
         undoManager?.setActionName("Codificação")
         onFormatChange?()
+        SessionManager.shared.markChanged()
     }
 
     func setLineEnding(_ newLineEnding: LineEnding) {
@@ -88,6 +107,7 @@ final class TextDocument: NSDocument {
         undoManager?.registerUndo(withTarget: self) { $0.setLineEnding(previous) }
         undoManager?.setActionName("Fim de linha")
         onFormatChange?()
+        SessionManager.shared.markChanged()
     }
 
     /// Re-decodes the file on disk with a caller-chosen encoding, for files
@@ -104,6 +124,22 @@ final class TextDocument: NSDocument {
         load(text)
         undoManager?.removeAllActions()
         updateChangeCount(.changeCleared)
+    }
+
+    /// Puts back text that was unsaved when the app quit. The document stays
+    /// marked as edited so the user still decides whether to save it.
+    func restoreUnsavedText(_ text: String, encoding: FileEncoding, lineEnding: LineEnding) {
+        load(text)
+        self.encoding = encoding
+        self.lineEnding = lineEnding
+        updateChangeCount(.changeDone)
+    }
+
+    /// Restores an encoding chosen with "Reopen with encoding" (a choice that
+    /// does not mark the document edited), when it still decodes the file.
+    func restoreChosenEncoding(_ chosen: FileEncoding) {
+        guard chosen != encoding else { return }
+        try? reopen(with: chosen)
     }
 
     private func load(_ text: String) {

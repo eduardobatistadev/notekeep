@@ -1,16 +1,52 @@
 import AppKit
 
-final class AppDelegate: NSObject, NSApplicationDelegate {
+@MainActor
+final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
+    private var restoredTabCount = 0
+
     func applicationWillFinishLaunching(_ notification: Notification) {
         NSWindow.allowsAutomaticWindowTabbing = true
+        // Restore before AppKit decides whether to open an untitled document
+        // and before files opened from Finder join as extra tabs.
+        restoredTabCount = SessionManager.shared.restore()
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.activate(ignoringOtherApps: true)
+        SessionManager.shared.startPeriodicBackup()
     }
 
     func applicationShouldOpenUntitledFile(_ sender: NSApplication) -> Bool {
-        true
+        restoredTabCount == 0 && NSDocumentController.shared.documents.isEmpty
+    }
+
+    /// Runs on every quit. AppKit only reviews documents when some are edited,
+    /// so tabs without unsaved changes are snapshotted here instead.
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        _ = SessionManager.shared.saveForTermination()
+        return .terminateNow
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        if !SessionManager.shared.isEnabled {
+            SessionManager.shared.discard()
+        }
+    }
+
+    @objc func toggleRememberSession(_ sender: Any?) {
+        Settings.shared.rememberSession.toggle()
+        if Settings.shared.rememberSession {
+            SessionManager.shared.save()
+        } else {
+            SessionManager.shared.discard()
+        }
+    }
+
+    func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
+        if menuItem.action == #selector(toggleRememberSession(_:)) {
+            menuItem.state = Settings.shared.rememberSession ? .on : .off
+        }
+        return true
     }
 
     /// Editor windows prefer tabbing, so a new document joins the front window

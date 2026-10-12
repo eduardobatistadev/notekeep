@@ -35,6 +35,7 @@ enum MainMenu {
             item("Salvar", #selector(NSDocument.save(_:)), "s"),
             item("Salvar como…", #selector(NSDocument.saveAs(_:)), "s", [.command, .shift]),
             item("Reverter para o salvo", #selector(NSDocument.revertToSaved(_:))),
+            item("Lembrar abas ao encerrar", #selector(AppDelegate.toggleRememberSession(_:))),
             .separator(),
             item("Configurar página…", #selector(NSApplication.runPageLayout(_:)), "p", [.command, .shift]),
             item("Imprimir…", #selector(NSView.printView(_:)), "p"),

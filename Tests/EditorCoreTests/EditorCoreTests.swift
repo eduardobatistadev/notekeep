@@ -239,3 +239,59 @@ final class SaveRoundTripTests: XCTestCase {
         }
     }
 }
+
+final class SessionStoreTests: XCTestCase {
+    private var directory: URL!
+
+    override func setUpWithError() throws {
+        directory = FileManager.default.temporaryDirectory.appendingPathComponent("SessionStoreTests-\(UUID().uuidString)")
+    }
+
+    override func tearDownWithError() throws {
+        try? FileManager.default.removeItem(at: directory)
+    }
+
+    private func tab(_ id: UUID, path: String? = nil, backup: Bool) -> SessionSnapshot.TabState {
+        SessionSnapshot.TabState(id: id, path: path, hasBackup: backup, encoding: "utf8", lineEnding: "crlf",
+                                 language: "swift", selectionLocation: 3, selectionLength: 2, topCharacter: 10)
+    }
+
+    func testRoundTripsSnapshotAndBackups() throws {
+        let store = SessionStore(directory: directory)
+        XCTAssertNil(store.load())
+        let saved = UUID(), untitled = UUID()
+        let snapshot = SessionSnapshot(windows: [
+            .init(frame: "{{10, 20}, {800, 600}}", selectedTab: 1, tabs: [tab(saved, path: "/tmp/a.swift", backup: false), tab(untitled, backup: true)]),
+        ])
+        try store.write(snapshot, changedBackups: [untitled: "texto não salvo\n"])
+        XCTAssertEqual(store.load(), snapshot)
+        XCTAssertEqual(store.backupText(for: untitled), "texto não salvo\n")
+        XCTAssertNil(store.backupText(for: saved))
+    }
+
+    func testRemovesUnreferencedBackupsAndKeepsUnchangedOnes() throws {
+        let store = SessionStore(directory: directory)
+        let kept = UUID(), dropped = UUID()
+        try store.write(SessionSnapshot(windows: [.init(frame: nil, selectedTab: 0, tabs: [tab(kept, backup: true), tab(dropped, backup: true)])]),
+                        changedBackups: [kept: "a", dropped: "b"])
+        // Next snapshot: `kept` unchanged (not rewritten), `dropped` closed.
+        try store.write(SessionSnapshot(windows: [.init(frame: nil, selectedTab: 0, tabs: [tab(kept, backup: true)])]), changedBackups: [:])
+        XCTAssertEqual(store.backupText(for: kept), "a")
+        XCTAssertNil(store.backupText(for: dropped))
+    }
+
+    func testCorruptSessionLoadsAsNil() throws {
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        try Data("{not json".utf8).write(to: directory.appendingPathComponent("session.json"))
+        XCTAssertNil(SessionStore(directory: directory).load())
+    }
+
+    func testClear() throws {
+        let store = SessionStore(directory: directory)
+        let id = UUID()
+        try store.write(SessionSnapshot(windows: [.init(frame: nil, selectedTab: 0, tabs: [tab(id, backup: true)])]), changedBackups: [id: "x"])
+        store.clear()
+        XCTAssertNil(store.load())
+        XCTAssertNil(store.backupText(for: id))
+    }
+}

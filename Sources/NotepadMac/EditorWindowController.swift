@@ -27,6 +27,9 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate, NSText
             defer: false
         )
         window.tabbingMode = .preferred
+        // Our own session snapshot reopens tabs; AppKit's window restoration
+        // would reopen them a second time.
+        window.isRestorable = false
         window.tabbingIdentifier = "NotepadMacEditor"
         window.minSize = NSSize(width: 360, height: 240)
 
@@ -201,10 +204,45 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate, NSText
 
     func textViewDidChangeSelection(_ notification: Notification) {
         updateStatus()
+        SessionManager.shared.markChanged()
     }
 
     func undoManager(for view: NSTextView) -> UndoManager? {
         textDocument?.undoManager
+    }
+
+    // MARK: Session state
+
+    /// Caret/selection and the first visible line, for the session snapshot.
+    var viewState: (selection: NSRange, topCharacter: Int) {
+        let selection = textView.selectedRange()
+        guard let layoutManager = textView.layoutManager, let container = textView.textContainer else {
+            return (selection, 0)
+        }
+        let top = NSPoint(x: 0, y: textView.visibleRect.minY - textView.textContainerOrigin.y)
+        let glyph = layoutManager.glyphIndex(for: top, in: container)
+        let character = layoutManager.characterIndexForGlyph(at: glyph)
+        return (selection, lineIndex.lineStarts[lineIndex.line(at: character)])
+    }
+
+    func restoreViewState(selection: NSRange, topCharacter: Int) {
+        let length = (textView.string as NSString).length
+        let location = min(selection.location, length)
+        textView.setSelectedRange(NSRange(location: location, length: min(selection.length, length - location)))
+
+        guard let layoutManager = textView.layoutManager else { return }
+        let character = min(topCharacter, length)
+        let lineTop: CGFloat
+        if character < length {
+            layoutManager.ensureLayout(forCharacterRange: NSRange(location: 0, length: character + 1))
+            lineTop = layoutManager.lineFragmentRect(forGlyphAt: layoutManager.glyphIndexForCharacter(at: character), effectiveRange: nil).minY
+        } else {
+            layoutManager.ensureLayout(forCharacterRange: NSRange(location: 0, length: length))
+            lineTop = layoutManager.extraLineFragmentRect.minY
+        }
+        let clip = scrollView.contentView
+        clip.scroll(to: NSPoint(x: clip.bounds.origin.x, y: lineTop))
+        scrollView.reflectScrolledClipView(clip)
     }
 
     // MARK: Syntax highlighting

@@ -15,6 +15,7 @@ final class Settings {
             "wordWrap": false,
             "showLineNumbers": true,
             "tabWidth": 4,
+            "rememberSession": true,
         ])
     }
 
@@ -31,6 +32,12 @@ final class Settings {
     var showLineNumbers: Bool {
         get { defaults.bool(forKey: "showLineNumbers") }
         set { defaults.set(newValue, forKey: "showLineNumbers"); notify() }
+    }
+
+    /// Notepad++'s "Remember current session" with snapshot and periodic backup.
+    var rememberSession: Bool {
+        get { defaults.bool(forKey: "rememberSession") }
+        set { defaults.set(newValue, forKey: "rememberSession"); notify() }
     }
 
     var tabWidth: Int { max(1, defaults.integer(forKey: "tabWidth")) }
