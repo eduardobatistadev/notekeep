@@ -46,6 +46,7 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate, NSText
         textDocument = document
         super.init(window: window)
         window.delegate = self
+        routeCloseButton()
         shouldCascadeWindows = true
         buildLayout()
         configureTextView()
@@ -396,7 +397,44 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate, NSText
         return true
     }
 
+    // MARK: Close button
+
+    /// The red button and ⌘W both send performClose:, so the button gets its
+    /// own action to tell them apart. Re-applied when the window becomes key
+    /// because AppKit can rebuild title-bar buttons (tabbing, full screen).
+    private func routeCloseButton() {
+        guard let button = window?.standardWindowButton(.closeButton) else { return }
+        button.target = self
+        button.action = #selector(closeButtonClicked(_:))
+    }
+
+    /// Like Notepad++'s X: on the last window, the red button quits the app
+    /// and the session snapshot keeps every tab (unsaved text included).
+    /// With other windows still open, or the snapshot turned off, it closes
+    /// the window with the usual save prompts, as a tab's ⌘W always does.
+    @objc private func closeButtonClicked(_ sender: Any?) {
+        guard let window else { return }
+        if SessionManager.shared.isEnabled && Self.editorWindowGroupCount() == 1 {
+            NSApp.terminate(sender)
+        } else {
+            window.performClose(sender)
+        }
+    }
+
+    /// Number of editor windows on screen, counting each tab group once.
+    private static func editorWindowGroupCount() -> Int {
+        var groups = Set<ObjectIdentifier>()
+        for window in NSApp.windows where window.windowController is EditorWindowController && (window.isVisible || window.isMiniaturized) {
+            groups.insert(window.tabGroup.map(ObjectIdentifier.init) ?? ObjectIdentifier(window))
+        }
+        return groups.count
+    }
+
     // MARK: NSWindowDelegate
+
+    func windowDidBecomeKey(_ notification: Notification) {
+        routeCloseButton()
+    }
 
     func windowDidResize(_ notification: Notification) {
         if Settings.shared.wordWrap {

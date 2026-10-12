@@ -43,7 +43,9 @@ codificação, fim de linha e linguagem. Um backup periódico a cada 7 s cobre
 travamentos e encerramentos forçados. Os arquivos originais só mudam quando
 você salva.
 
-Fechar uma aba isolada (⌘W) com alterações continua perguntando. Com a opção
+O botão vermelho da janela faz o mesmo quando é a última janela aberta, como
+o X do Notepad++. Fechar uma aba isolada (⌘W) com alterações continua
+perguntando, assim como o botão vermelho quando há outras janelas abertas. Com a opção
 desligada, o app volta a perguntar ao encerrar e a sessão gravada é apagada.
 
 Os dados ficam em `~/Library/Application Support/NotepadMac/Session/`
